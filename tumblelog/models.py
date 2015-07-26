@@ -1,7 +1,64 @@
 import datetime
-from flask import url_for
-from tumblelog import db
+from werkzeug.security import generate_password_hash, check_password_hash
+import mongoengine as db
+import sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
 
+db.connect('tieba')
+
+
+class Record(db.Document):
+    name = db.StringField(required=True)
+    id_all = db.IntField(default = 0)
+    doc_all = db.IntField(default = 0)
+
+user_record = Record(name="user")
+
+def next_id(record_name):
+    find = Record.objects(name=record_name)
+    if len(find) == 0:
+        re = Record(name=record_name)
+    else:
+        re = find[0]
+    try:
+        re.id_all += 1
+        re.save()
+        return re.id_all
+    except:
+        pass
+
+
+class User(db.Document):
+    #private func start with __
+    user_id = db.IntField(default=next_id('User'), unique=True,required=True)
+    name = db.StringField(unique=True, required=True)
+    role_id = db.IntField(default=0, required=True)
+    password_hash = db.StringField(default='no', required=True)
+    created_at = db.DateTimeField(default=datetime.datetime.now, required=True)
+
+    @property
+    def password():
+        raise AttributeError('password is not a readable attribute')
+
+    @password.setter
+    def password(self, password):
+        self.password_hash = generate_password_hash(password)
+
+    def verify_password(self, password):
+        return check_password_hash(self.password_hash, password)
+
+    def __repr__(self):
+        return "<User %name>" % self.name
+
+
+    
+
+class Comment(db.EmbeddedDocument):
+    created_at = db.DateTimeField(default=datetime.datetime.now, required=True)
+    body = db.StringField(verbose_name="Comment", required=True)
+    author = db.StringField(verbose_name="Name", max_length=255, required=True)
+    
 class Post(db.Document):
     created_at = db.DateTimeField(default=datetime.datetime.now, required=True)
     title = db.StringField(max_length=255, required=True)
@@ -21,7 +78,39 @@ class Post(db.Document):
         'ordering': ['-created_at']
     }
 
-class Comment(db.EmbeddedDocument):
-    created_at = db.DateTimeField(default=datetime.datetime.now, required=True)
-    body = db.StringField(verbose_name="Comment", required=True)
-    author = db.StringField(verbose_name="Name", max_length=255, required=True)
+
+class Tieba_post_doc(db.Document):
+    url_link = db.StringField(max_length=300, required=True)  
+    rep_num = db.IntField(required=True)  
+    title = db.StringField(max_length=100, required=True)  
+    # first_time = StringField(max_length=20, required=True)  
+    last_time = db.StringField(max_length=20, required=True)  
+    author = db.StringField(max_length=30, required=True)  
+    # tags = Field()
+    body = db.StringField(required=True)
+
+class Quotion_doc(db.Document):
+    index = db.IntField(required=True)
+    content = db.StringField(max_length=100, required=True)
+    rep_num = db.IntField(required=True)
+    last_time = db.StringField(max_length=20, required=True)  
+    author = db.StringField(max_length=30, required=True)
+
+class Post_doc(db.Document):
+    # url_link = db.StringField(max_length=300, required=True)  
+    rep_num = db.IntField(required=True)  
+    title = db.StringField(max_length=150, required=True)  
+    first_time = db.StringField(max_length=50, required=True)  
+    last_time = db.StringField(max_length=50, required=True)  
+    author = db.StringField(max_length=30, required=True)  
+    tags = db.ListField(db.StringField(max_length=30))
+    body = db.StringField(required=True)
+    
+if __name__ == '__main__':
+    u = User(name='liu')
+    u.password = 'liuzhigang'
+    print u.password_hash
+    # print u.user_id
+    # for post in Tieba_post_doc.objects():
+    #     print post.title
+    # print datetime.datetime(Post.created_at)
