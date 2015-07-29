@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% import "bootstrap/wtf.html" as wtf%}
+{% block title %}Jiese{% endblock %}
+
+{% block page_content %}
+<div class="page-header">
+<!--     <h1>Hello,{%if name%}{{name}}{% else %}Stranger{% endif%}!</h1> -->
+</div>
+<!-- {{wtf.quick_form(form)}} -->
+{% for post in posts %}
+    <div class="panel panel-primary">
+    		<!-- <div class='post-date'>{{post.last_time}}</div> -->
+            <div cl ass="panel-heading">
+              <h3 class="panel-title">{{ post.title }}</h3>
+    		  <!-- <div class='post-author'>{{post.author}}</div> -->
+            </div>
+            <div class="panel-body">
+              {{ post.body[0:100] }}
+            </div>
+    </div>
+{% endfor %}
+<div>
+<p>the local time is {{moment(current_time).format('LLL')}}.</p>
+<p>that was {{moment(current_time).fromNow(refresh=True)}}</p>
+</div>
+{% endblock %}
+

@@ -3,14 +3,11 @@ import os, sys
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from flask.ext.script import Manager, Server, Shell
-from flask.ext.bootstrap import Bootstrap
 from flask.ext.moment import Moment
-from tumblelog import app, views, db, models
+from APP import app, db, models
 
 manager = Manager(app)
-bootstrap = Bootstrap(app)
 moment = Moment(app)
-
 
 def make_context():
 	return dict(app=app, db=db, User=models.User)
